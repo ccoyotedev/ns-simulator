@@ -69,3 +69,5 @@ class Graph {
     this.drawLine();
   }
 }
+
+const graph = new Graph([]);
