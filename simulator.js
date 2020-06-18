@@ -42,12 +42,12 @@
   }
 
   class Herbivore extends Entity {
-    constructor(x, y, id, angle, scope) {
+    constructor(x, y, id, angle, scope, speed) {
       super(x, y, 10, "#1AA8F0");
       this.name = "herbivore";
       this.id = id;
 
-      this.speed = 2 * gameSpeed;
+      this.speed = speed;
       this.angle = angle;
 
       this.sightRadius = 100;
@@ -139,11 +139,13 @@
     return new Plant(x, y, id)
   }
 
-  function createRandomlyPlacedHerbivore(id, scope) {
+  function createRandomlyPlacedHerbivore(id, scope, simulationSpeed) {
     const wall = randomInteger(4);
     let x = 10;
     let y = 10;
     let angle = 0;
+    let speed = 2 * simulationSpeed;
+
     switch(wall){
       case 0:
         y = randomInteger(c.height);
@@ -164,7 +166,7 @@
         break;
     }
 
-    return new Herbivore(x, y, id, angle, scope);
+    return new Herbivore(x, y, id, angle, scope, speed);
   }
 
   const Simulation = function() {
@@ -187,7 +189,7 @@
       }
       
       for (let i = 0; i < herbivoreN; i++) {
-        herbivoreArray.push(createRandomlyPlacedHerbivore(i, this));
+        herbivoreArray.push(createRandomlyPlacedHerbivore(i, this, this.internalSimulationSpeed));
       }
 
       this.foodArray = foodArray;
@@ -208,6 +210,12 @@
       this.totalHerbivoresArrayListener = listener
     };
 
+    // Listener for simulationSpeed update
+    set simulationSpeed(value) {
+      this.internalSimulationSpeed = value;
+      this.herbivoreArray.forEach(item => item.speed = 2 * value);
+    }
+
     animate() {
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, c.width, c.height);
@@ -221,8 +229,7 @@
       this.time += 1/60;
 
       // this.stopButton.draw();
-
-      if (this.time > 10 / gameSpeed) {
+      if (this.time > 10 / this.internalSimulationSpeed) {
         this.stop();
         this.setNextDay();
       }

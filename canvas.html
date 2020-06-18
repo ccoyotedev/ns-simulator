@@ -10,7 +10,11 @@
     <canvas id="simulationCanvas" style="border: 1px solid black;">
       Your browser does not support the HTML5 canvas tag.
     </canvas>
-    <div style="display: flex; flex-direction: column; justify-content: flex-end;">
+    <div style="display: flex; flex-direction: column; justify-content: space-between;">
+      <form style="padding:24px">
+        <label for="simulationSpeed">Simulator speed:</label>
+        <input type="range" id="simulationSpeed" name="simulationSpeed" min="0" max="10">
+      </form>
       <canvas id="graphCanvas" style="border: 1px solid black">
         Your browser does not support the HTML5 canvas tag.
       </canvas>
