@@ -1,33 +1,53 @@
-const simulationSpeedInput = document.getElementById('simulationSpeed')
+const simulationSpeedInput = document.getElementById('simulationSpeed');
+
+const herbivoresCooperateInput = document.getElementById("herbivoreCoop");
+const herbivoresSpeed = document.getElementById("herbivoreSpeed");
+const herbivoresSightRadius = document.getElementById("herbivoreSightRadius");
+
+const startSimulation = document.getElementById('startSimulation');
 
 // Interchangeable properties
 let simulationSpeed = Number(simulationSpeedInput.value);
 const food = 20;
-const initialHerbivores = 5;
+const initialHerbivores = 1;
 
 const herbivoreProps = {
-  cooperate: true,
-  movementSpeed: 2,
-  sightRadius: 200
+  cooperate: herbivoresCooperateInput.checked,
+  movementSpeed: Number(herbivoresSpeed.value),
+  sightRadius: Number(herbivoresSightRadius.value)
 }
 
-
-// Initial set up
+// Initiate
+const graph = Graph([]);
 const simulation = Simulation(herbivoreProps);
 simulation.simulationSpeed = simulationSpeed;
 
-const graph = Graph([]);
-
 function init() {
+  const newHerbivoreProps = {
+    cooperate: herbivoresCooperateInput.checked,
+    movementSpeed: Number(herbivoresSpeed.value),
+    sightRadius: Number(herbivoresSightRadius.value)
+  }
+
+  totalHerbivoresArray = [initialHerbivores];
+  simulation.stop();
+  simulation.herbivoreProps = newHerbivoreProps;
+  document.getElementById("averageHerbivores").innerHTML = initialHerbivores;
+  graph.clear();
   simulation.build(food, initialHerbivores).start();
 }
-init();
 
 
 // Input listeners
 simulationSpeedInput.addEventListener("change", function(e) {
   simulation.simulationSpeed = Number(e.target.value);
 })
+
+startSimulation.addEventListener("click", function(e) {
+  e.preventDefault();
+  init();
+})
+
 
 // Output listners
 function calculateMean(array) {

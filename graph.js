@@ -73,10 +73,16 @@
     };
 
     draw() {
-       ctx.fillStyle = 'white';
-       ctx.fillRect(0, 0, c.width, c.height);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, c.width, c.height);
       this.drawAxis();
       this.drawLine();
+    }
+
+    clear() {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, c.width, c.height);
+      this.array = []
     }
   }
 
