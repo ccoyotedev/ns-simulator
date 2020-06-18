@@ -1,46 +1,27 @@
-(function(global, graph) {
-  var s = document.getElementById("simulation");
-  s.width = document.body.clientWidth / 2;
-  s.height = document.body.clientHeight;
-  var ctx = s.getContext("2d");
-
-  var mouse = {
-    x: 0,
-    y: 0
-  }
+(function(global) {
+  var c = document.getElementById("simulationCanvas");
+  c.width = document.body.clientWidth / 2;
+  c.height = document.body.clientHeight;
+  var ctx = c.getContext("2d");
 
   window.addEventListener('resize', 
     function() {
-      s.width = window.innerWidth / 2;
-      s.height = window.innerHeight;
+      c.width = window.innerWidth / 2;
+      c.height = window.innerHeight;
     }
   )
-
 
   function randomInteger(maxNumber) {
     return Math.floor(Math.random() * maxNumber);
   }
 
-  function calculateXYDisplacement(theta, hyp) {
-    let dx = hyp * Math.cos(theta);
-    let dy = hyp * Math.sin(theta);
-    return {dx: dx, dy: dy};
-  }
-
-  function calculateDistance(x1, y1, x2, y2) {
-    let dx = Math.abs(x1 - x2);
-    let dy = Math.abs(y1 - y2);
-    return Math.sqrt(dx * dx + dy * dy);
-  }
-
-  class Circle {
+  class Entity {
     constructor(x, y, radius, color) {
       this.x = x;
       this.y = y,
       this.radius = radius,
       this.color = color || '#0000'
     }
-
 
     draw() {
       ctx.beginPath();
@@ -51,24 +32,7 @@
     }
   }
 
-  class Button {
-    constructor() {
-      this.x = s.width/2 - 75,
-      this.y = s.height - 100,
-      this.width = 150,
-      this.height = 50
-    }
-
-    draw() {
-      ctx.fillRect(this.x, this.y, this.width, this.height)
-    }
-
-    isInside() {
-      return mouse.x > this.x && mouse.x < this.x+this.width && mouse.y < this.y+this.height && mouse.y > this.y
-    }
-  }
-
-  class Plant extends Circle {
+  class Plant extends Entity {
     constructor(x, y, id) {
       super(x, y, 5, "#00CC00");
       this.name = "plant";
@@ -77,7 +41,7 @@
     }
   }
 
-  class Herbivore extends Circle {
+  class Herbivore extends Entity {
     constructor(x, y, id, angle, scope) {
       super(x, y, 10, "#1AA8F0");
       this.name = "herbivore";
@@ -96,22 +60,25 @@
 
     moveRandomly() {
       const displacement = calculateXYDisplacement(this.angle, this.speed);
-      if (this.x + displacement.dx > 0 + this.radius && this.x + displacement.dx < s.width - this.radius) {
+      if (this.x + displacement.dx > this.radius && this.x + displacement.dx < c.width - this.radius) {
         this.x += displacement.dx;
       } else {
-        this.angle += Math.PI / 90
+        this.angle += Math.PI / 45
       }
 
-      if (this.y + displacement.dy > 0 + this.radius && this.y + displacement.dy < s.height - this.radius) {
+      if (this.y + displacement.dy > this.radius && this.y + displacement.dy < c.height - this.radius) {
         this.y += displacement.dy;
       } else {
-        this.angle += Math.PI / 90
+        this.angle += Math.PI / 45
       }
     }
 
     detectFood() {
       // If there exists a food item within sight radius, move towards it
-      let target = this.scope.foodArray.find(item => item.isEaten === false && (calculateDistance(this.x, this.y, item.x, item.y) < this.sightRadius));
+      let target = this.scope.foodArray.find(
+        item => item.isEaten === false &&
+        (calculateDistance(this.x, this.y, item.x, item.y) < this.sightRadius)
+      );
       if (target) {
         this.target = target;
       }
@@ -167,8 +134,8 @@
 
 
   function createRandomlyPlacedFood(id) {
-    const x = randomInteger(s.width);
-    const y = randomInteger(s.height);
+    const x = randomInteger(c.width);
+    const y = randomInteger(c.height);
     return new Plant(x, y, id)
   }
 
@@ -179,20 +146,20 @@
     let angle = 0;
     switch(wall){
       case 0:
-        y = randomInteger(s.height);
+        y = randomInteger(c.height);
         break;
       case 1:
-        x = s.width - 10;
+        x = c.width - 10;
         angle = Math.PI;
-        y = randomInteger(s.height);
+        y = randomInteger(c.height);
         break;
       case 2:
-        x = randomInteger(s.width);
+        x = randomInteger(c.width);
         angle = (Math.PI / 2);
         break;
       case 3:
-        y = s.height - 10,
-        x = randomInteger(s.width);
+        y = c.height - 10,
+        x = randomInteger(c.width);
         angle = (Math.PI / 180) * 270;
         break;
     }
@@ -200,14 +167,19 @@
     return new Herbivore(x, y, id, angle, scope);
   }
 
-
-  // Game State
   const Simulation = function() {
-    return new Simulation.init();
+    return new SimulationInit();
   }
 
-  Simulation.prototype = {
-    build: function(foodN, herbivoreN) {
+  class SimulationInit {
+    constructor() {
+      this.foodArray = [];
+      this.herbivoreArray = [];
+      this.time = 0;
+      this.totalHerbivoresArray = [];
+    }
+
+    build(foodN, herbivoreN) {
       let foodArray = [];
       let herbivoreArray = [];
       for (let i = 0; i < foodN; i++) {
@@ -222,11 +194,23 @@
       this.herbivoreArray = herbivoreArray;
 
       return this
-    },
+    };
 
-    animate: function() {
+    // Listeners for day completion
+    totalHerbivoresArrayListener(val) {};
+
+    set totalHerbivores(value) {
+      this.totalHerbivoresArray.push(value);
+      this.totalHerbivoresArrayListener(value);
+    };
+
+    registerListener(listener) {
+      this.totalHerbivoresArrayListener = listener
+    };
+
+    animate() {
       ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, s.width, s.height);
+      ctx.fillRect(0, 0, c.width, c.height);
       this.foodArray.forEach(item => {
         if (item.isEaten) {
           return
@@ -242,13 +226,13 @@
         this.stop();
         this.setNextDay();
       }
-    },
+    };
 
-    stop: function() {
+    stop() {
       clearInterval(this.interval)
-    },
+    };
 
-    setNextDay: function() {
+    setNextDay() {
       let dead = 0;
       let live = 0;
       let offspring = 0;
@@ -269,32 +253,20 @@
       });
 
       const totalHerbivores = live + offspring - dead;
-      graph.array.push(totalHerbivores);
-      graph.draw()
+      this.totalHerbivores = totalHerbivores;
 
       this.build(food, totalHerbivores).start();
-    },
+    };
 
-    start: function() {
+    start() {
       const that = this;
       this.time = 0;
       this.interval = setInterval(function() {
         that.animate()
       }, 1000/60)
     }
-
   };
-
-  Simulation.init = function() {
-    const self = this;
-    self.foodArray = [];
-    self.herbivoreArray = [];
-    self.time = 0;
-  }
-
-  Simulation.init.prototype = Simulation.prototype;
-
 
   global.Simulation = Simulation;
 
-}(window, graph))
+}(window))

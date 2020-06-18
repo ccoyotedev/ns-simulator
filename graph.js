@@ -1,73 +1,85 @@
-var g = document.getElementById("graph");
-g.width = document.body.clientWidth / 2;
-g.height = document.body.clientHeight / 2;
-var gCtx = g.getContext("2d");
 
-class Graph {
-  constructor(array) {
-    this.array = array;
-    this.padding = 20;
-    this.xAxisLength = g.width - 2 * this.padding;
-    this.yAxisLength = g.height - 2 * this.padding;
+(function(global) {
+  var c = document.getElementById("graphCanvas");
+  c.width = document.body.clientWidth / 2;
+  c.height = document.body.clientHeight / 2;
+  var ctx = c.getContext("2d");
+
+  window.addEventListener('resize', 
+    function() {
+      c.width = window.innerWidth / 2;
+      c.height = window.innerHeight / 2;
+    }
+  )
+
+  const Graph = function(array) {
+    return new GraphClass(array);
   }
-
-  get xScale() {
-    return this.xAxisLength / this.array.length;
-  }
-
-  get yScale() {
-    return this.yAxisLength / Math.max(...this.array);
-  }
-
-  get origin() {
-    return {x: this.padding, y: this.padding + this.yAxisLength};
-  }
-
-  drawAxis() {
-    gCtx.beginPath();
-    gCtx.moveTo(this.origin.x, this.padding);
-    gCtx.lineTo(this.origin.x, this.origin.y)
-    gCtx.lineTo(this.origin.x + this.xAxisLength, this.origin.y);
-    gCtx.strokeStyle = "black";
-    gCtx.stroke();
-
-    // Draw x intervals
-    this.array.forEach((item, key) => {
-      gCtx.beginPath();
-      gCtx.moveTo(this.origin.x + key * this.xScale, this.origin.y);
-      gCtx.lineTo(this.origin.x + key * this.xScale, this.origin.y + 10);
-      gCtx.strokeStyle = "black";
-      gCtx.stroke();
-    })
-
-    // Draw y intervals
-    for (let i = 0; i < Math.max(...this.array); i++) {
-      gCtx.beginPath();
-      gCtx.moveTo(this.origin.x, this.origin.y - i * this.yScale);
-      gCtx.lineTo(this.origin.x - 10, this.origin.y - i * this.yScale);
-      gCtx.strokeStyle = "black";
-      gCtx.stroke();
+  
+  class GraphClass {
+    constructor(array) {
+      this.array = array;
+      this.padding = 30;
+      this.xAxisLength =   c.width - 2 * this.padding;
+      this.yAxisLength =   c.height - 2 * this.padding;
     }
 
+    get xScale() {
+      return this.xAxisLength / this.array.length;
+    };
 
+    get yScale() {
+      return this.yAxisLength / Math.max(...this.array);
+    };
+    get origin() {
+      return {x: this.padding, y: this.padding + this.yAxisLength};
+    };
+
+    drawAxis() {
+      ctx.beginPath();
+      ctx.moveTo(this.origin.x, this.padding);
+      ctx.lineTo(this.origin.x, this.origin.y)
+      ctx.lineTo(this.origin.x + this.xAxisLength, this.origin.y);
+      ctx.strokeStyle = "black";
+      ctx.stroke();
+
+      // Draw x intervals
+      this.array.forEach((item, key) => {
+        ctx.beginPath();
+        ctx.moveTo(this.origin.x + key * this.xScale, this.origin.y);
+        ctx.lineTo(this.origin.x + key * this.xScale, this.origin.y + 10);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+      })
+
+      // Draw y intervals
+      for (let i = 0; i < Math.max(...this.array); i++) {
+        ctx.beginPath();
+        ctx.moveTo(this.origin.x, this.origin.y - i * this.yScale);
+        ctx.lineTo(this.origin.x - 10, this.origin.y - i * this.yScale);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+      }
+    };
+
+    drawLine() {
+      ctx.beginPath();
+      ctx.moveTo(this.origin.x, this.origin.y)
+      this.array.forEach((item, key) => {
+        ctx.lineTo(this.origin.x + key * this.xScale, this.origin.y - item * this.yScale);
+      })
+      ctx.strokeStyle = "blue";
+      ctx.stroke();
+    };
+
+    draw() {
+       ctx.fillStyle = 'white';
+       ctx.fillRect(0, 0, c.width, c.height);
+      this.drawAxis();
+      this.drawLine();
+    }
   }
 
-  drawLine() {
-    gCtx.beginPath();
-    gCtx.moveTo(this.origin.x, this.origin.y)
-    this.array.forEach((item, key) => {
-      gCtx.lineTo(this.origin.x + key * this.xScale, this.origin.y - item * this.yScale);
-    })
-    gCtx.strokeStyle = "blue";
-    gCtx.stroke();
-  }
+  global.Graph = Graph;
 
-  draw() {
-    gCtx.fillStyle = 'white';
-    gCtx.fillRect(0, 0, g.width, g.height);
-    this.drawAxis();
-    this.drawLine();
-  }
-}
-
-const graph = new Graph([]);
+}(window))

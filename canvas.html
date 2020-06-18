@@ -7,18 +7,20 @@
 <body style="margin: 0; height: 100vh">
 
   <div style="display: flex;">
-    <canvas id="simulation" style="border: 1px solid black;">
+    <canvas id="simulationCanvas" style="border: 1px solid black;">
       Your browser does not support the HTML5 canvas tag.
     </canvas>
     <div style="display: flex; flex-direction: column; justify-content: flex-end;">
-      <canvas id="graph" style="border: 1px solid black">
+      <canvas id="graphCanvas" style="border: 1px solid black">
         Your browser does not support the HTML5 canvas tag.
       </canvas>
     </div>
   </div>
 
+<script src='geometry.js'></script>
 <script src='graph.js'></script>
-<script src='simulator.js'></script> 
+<script src='simulator.js'></script>
+
 <script src='app.js'></script>
 
 </body>
