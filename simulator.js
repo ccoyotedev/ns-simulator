@@ -42,15 +42,16 @@
   }
 
   class Herbivore extends Entity {
-    constructor(x, y, id, angle, scope, speed) {
+    constructor(x, y, id, angle, scope, speed, cooperate, sightRadius) {
       super(x, y, 10, "#1AA8F0");
       this.name = "herbivore";
       this.id = id;
+      this.cooperate = cooperate;
 
       this.speed = speed;
       this.angle = angle;
 
-      this.sightRadius = 100;
+      this.sightRadius = sightRadius;
       this.eaten = 0;
 
       this.target = null;
@@ -114,18 +115,20 @@
     }
 
     update() {
-      if (this.target) {
-        this.moveTowardsFood(this.target)
-      } else {
-        this.detectFood();
-        const randomlyMove = randomInteger(3);
-        if (randomlyMove === 0) {
-          this.pivotLeft();
-        } else if (randomlyMove === 1) {
-          this.pivotRight();
-        }
+      if (!this.cooperate || this.eaten < 2) {
+        if (this.target) {
+          this.moveTowardsFood(this.target)
+        } else {
+          this.detectFood();
+          const randomlyMove = randomInteger(3);
+          if (randomlyMove === 0) {
+            this.pivotLeft();
+          } else if (randomlyMove === 1) {
+            this.pivotRight();
+          }
 
-        this.moveRandomly();
+          this.moveRandomly();
+        }
       }
       this.draw();
     }
@@ -139,12 +142,14 @@
     return new Plant(x, y, id)
   }
 
-  function createRandomlyPlacedHerbivore(id, scope, simulationSpeed) {
+  function createRandomlyPlacedHerbivore(id, scope, simulationSpeed, herbivoreProps) {
+    const { cooperate, movementSpeed, sightRadius } = herbivoreProps;
+
     const wall = randomInteger(4);
     let x = 10;
     let y = 10;
     let angle = 0;
-    let speed = 2 * simulationSpeed;
+    let speed = movementSpeed * simulationSpeed;
 
     switch(wall){
       case 0:
@@ -166,19 +171,21 @@
         break;
     }
 
-    return new Herbivore(x, y, id, angle, scope, speed);
+    return new Herbivore(x, y, id, angle, scope, speed, cooperate, sightRadius);
   }
 
-  const Simulation = function() {
-    return new SimulationInit();
+  const Simulation = function(herbivoreProps) {
+    return new SimulationInit(herbivoreProps);
   }
 
   class SimulationInit {
-    constructor() {
+    constructor(herbivoreProps) {
       this.foodArray = [];
       this.herbivoreArray = [];
       this.time = 0;
       this.totalHerbivoresArray = [];
+
+      this.herbivoreProps = herbivoreProps;
     }
 
     build(foodN, herbivoreN) {
@@ -189,7 +196,9 @@
       }
       
       for (let i = 0; i < herbivoreN; i++) {
-        herbivoreArray.push(createRandomlyPlacedHerbivore(i, this, this.internalSimulationSpeed));
+        herbivoreArray.push(
+          createRandomlyPlacedHerbivore(i, this, this.internalSimulationSpeed, this.herbivoreProps)
+        );
       }
 
       this.foodArray = foodArray;
